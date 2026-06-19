@@ -25,3 +25,17 @@ Thumbs.db
 
 # Dados sensíveis / saídas
 *.log
+
+# Dados / saídas com possível PII
+dados/
+dashboards/
+meta/*_meta_sem_certificados/
+*.xlsx
+*.csv
+*.zip
+*.jpg
+*.jpeg
+*.png
+*.pdf
+notifications_daily.json
+resultado*.xlsx
