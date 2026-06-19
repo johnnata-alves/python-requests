@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Call Model Economy Steering",
+  "description": "Adds the #model-economy.md steering reference to every prompt so Kiro applies the model economy, response style, model selection, and code comment rules.",
+  "version": "1",
+  "when": {
+    "type": "promptSubmit"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "#model-economy.md"
+  }
+}
