@@ -1,6 +1,7 @@
 import os
 import pyodbc
 import threading
+from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pymongo import MongoClient
 from datetime import datetime, date
@@ -9,27 +10,29 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-QUANTIDADE_IMPORTAR = 1000
-MAX_WORKERS = 8
+MAX_WORKERS = int(os.getenv("WORKERS", "16"))
+SQL_BATCH = int(os.getenv("SQL_BATCH", "500"))
 USER_CODE = "johnnata.alves"
 
-SQL_CONNECTION = os.getenv("SQL_CONNECTION_I4PRO_PRD")
-MONGO_CONNECTION = os.getenv("PRD_MONGO_CLAIM_ENGINE")
-MONGO_AVISO_CONNECTION = os.getenv("PRD_MONGO_SA_EAST")
+SQL_CONNECTION = os.getenv("SQL_CONNECTION_I4PRO_HML")
+MONGO_CONNECTION = os.getenv("HML_MONGO_URI")
+MONGO_AVISO_CONNECTION = os.getenv("HML_MONGO_URI")
 DATABASE_MONGO = "ClaimEngine"
 DATABASE_AVISO = "SinistrosMicroService"
 
+WHERE_FILTRO = "csin.id_ramo not in (33) and csin.dt_sistema > '2025-01-01'"
+
 SINISTRO_LIST_QUERY = f"""
-    select distinct csin.nr_sinistro, ca.cd_apolice
+select distinct csin.nr_sinistro
     from i4pro_erp..corp_sinistro csin with(NOLOCK)
     inner join i4pro_erp..corp_endosso ce with(NOLOCK) on csin.id_endosso = ce.id_endosso
     inner join i4pro_erp..corp_sub_estipulante cse with(NOLOCK) on ce.id_sub = cse.id_sub
     inner join i4pro_erp..corp_apolice ca with(NOLOCK) on cse.id_apolice = ca.id_apolice
-    where csin.cd_status in(804, 801, 426)
+    where {WHERE_FILTRO}
 """
 
 DETAIL_QUERY = """
-select distinct
+select
     csin.nr_sinistro as Sinistro,
     ca.cd_apolice as Apolice,
     ca.nr_bilhete as Certificado,
@@ -95,19 +98,23 @@ from
     left join i4pro_erp.cad.t_pessoas_meio_comunicacao telefone_seg with(NOLOCK) on telefone_seg.id_pessoa = pess.id_pessoa and telefone_seg.cd_tp_meio_comunicacao = 3
     left join i4pro_erp.cad.t_pessoas_meio_comunicacao email_rec with(NOLOCK) on email_rec.id_pessoa = pess_rec.id_pessoa and email_rec.cd_tp_meio_comunicacao = 4
     left join i4pro_erp.cad.t_pessoas_meio_comunicacao telefone_rec with(NOLOCK) on telefone_rec.id_pessoa = pess_rec.id_pessoa and telefone_rec.cd_tp_meio_comunicacao = 3
-where csin.nr_sinistro = ?
+where csin.nr_sinistro in ({placeholders})
 """
 
 DOC_QUERY = """
-    select id_sin_documento, id_documento, dt_recebimento, dt_solicitacao, dv_solicitar, id_sin_beneficiario
-    from i4pro_erp..corp_sin_documento with(NOLOCK)
-    where nr_sinistro = ?
+    select d.nr_sinistro, d.id_sin_documento, d.id_documento, d.dt_recebimento, d.dt_solicitacao, d.dv_solicitar, d.id_sin_beneficiario
+    from i4pro_erp..corp_sin_documento d with(NOLOCK)
+    where d.nr_sinistro in ({placeholders})
 """
+
+AVISO_PROJECTION = {"Protocolo": 1, "Segurado": 1, "Reclamante": 1, "InformacoesComplementares": 1, "Sinistros": 1}
+
 
 def parse_date(date_str):
     if not date_str:
         return None
     return datetime.strptime(date_str, "%d/%m/%Y")
+
 
 def format_birthdate(value):
     if value is None:
@@ -122,11 +129,13 @@ def format_birthdate(value):
         return str(value)
     return dt.strftime("%Y-%m-%dT%H:%M:%S.000Z")
 
+
 def normalize_cpf(value):
     if value is None:
         return None
     digits = "".join(ch for ch in str(value) if ch.isdigit())
     return digits.zfill(11) if digits else None
+
 
 def sanitize_for_mongo(value):
     if isinstance(value, Decimal):
@@ -139,38 +148,37 @@ def sanitize_for_mongo(value):
         return [sanitize_for_mongo(v) for v in value]
     return value
 
+
 def to_int_or_none(value):
     if value is None or value == "":
         return None
     return int(value)
 
-def log_step(index, total, sinistro, message):
-    print(f"[{index}/{total}] Sinistro {sinistro}: {message}")
 
-_thread_local = threading.local()
+def load_coverage_map(db):
+    cov = {}
+    for d in db.Coverage.find({}, {"coverage": 1, "groupCoverageCodes": 1, "coverageCodes": 1}):
+        for g in d.get("groupCoverageCodes") or []:
+            cov[("g", g)] = d.get("coverage")
+        for c in d.get("coverageCodes") or []:
+            cov[("c", c)] = d.get("coverage")
+    return cov
 
-def get_sql_conn():
-    if not hasattr(_thread_local, "sql_conn"):
-        _thread_local.sql_conn = pyodbc.connect(SQL_CONNECTION)
-    return _thread_local.sql_conn
 
-def process_sinistro(idx, sinistro, total, db, db_aviso):
-    log_step(idx, total, sinistro, "Iniciando processamento")
+def load_relationship_map(db):
+    return {d["RelationshipCode"]: d.get("Relationship")
+            for d in db.Relationship.find({}, {"RelationshipCode": 1, "Relationship": 1})
+            if "RelationshipCode" in d}
 
-    sql_conn = get_sql_conn()
 
-    if db.Claim.find_one({"claimNumber": sinistro}):
-        log_step(idx, total, sinistro, "Claim já existe, pulando")
-        return "ja_existe"
+def load_docmap(db):
+    return {d["ERPDocumentId"]: d.get("ERPDocumentName")
+            for d in db.DocumentTypeMappings.find({}, {"ERPDocumentId": 1, "ERPDocumentName": 1})
+            if "ERPDocumentId" in d}
 
-    if db.LegacyClaim.find_one({"claimNumber": sinistro}):
-        log_step(idx, total, sinistro, "LegacyClaim já existe, pulando")
-        return "ja_existe"
 
-    aviso = db_aviso["AvisoSinistro"].find_one({"Sinistros": str(sinistro)})
-    if not aviso:
-        log_step(idx, total, sinistro, "AvisoSinistro não encontrado, importando com dados vazios")
-        aviso = {}
+def build_claim_document(sinistro, registros, aviso, cov_map, rel_map):
+    base = registros[0]
 
     protocolo_num = aviso.get("Protocolo", "")
     segurado_aviso = aviso.get("Segurado") or {}
@@ -178,29 +186,14 @@ def process_sinistro(idx, sinistro, total, db, db_aviso):
     info_compl = aviso.get("InformacoesComplementares") or {}
     origem_documento = info_compl.get("origemdocumento", "")
 
-    detail_cursor = sql_conn.cursor()
-    detail_cursor.execute(DETAIL_QUERY, sinistro)
-    detail_columns = [column[0] for column in detail_cursor.description]
-    detail_rows = detail_cursor.fetchall()
-
-    if not detail_rows:
-        log_step(idx, total, sinistro, "Sem detalhes SQL, pulando")
-        return "sem_detalhes"
-
-    registros = [dict(zip(detail_columns, row)) for row in detail_rows]
-    base = registros[0]
-
-    if base["IdGrupoCobertura"]:
-        coverage_doc = db.Coverage.find_one({"groupCoverageCodes": int(base["IdGrupoCobertura"])})
+    group_code_base = int(base["IdGrupoCobertura"]) if base["IdGrupoCobertura"] else None
+    if group_code_base:
+        coverage_value = cov_map.get(("g", group_code_base))
     else:
-        coverage_doc = db.Coverage.find_one({"coverageCodes": int(base["IdCobertura"])})
-    coverage_value = coverage_doc["coverage"] if coverage_doc else None
+        coverage_value = cov_map.get(("c", int(base["IdCobertura"]) if base["IdCobertura"] else None))
 
-    if base["IdRelacao"]:
-        relationship_doc = db.Relationship.find_one({"RelationshipCode": int(base["IdRelacao"])})
-        relationship_value = relationship_doc["Relationship"] if relationship_doc else None
-    else:
-        relationship_value = "OTHER"
+    relacao = int(base["IdRelacao"]) if base["IdRelacao"] else None
+    relationship_value = rel_map.get(relacao, "OTHER") if relacao else "OTHER"
 
     coverages = []
     coverage_set = set()
@@ -219,9 +212,6 @@ def process_sinistro(idx, sinistro, total, db, db_aviso):
         })
 
     status_code = int(base["IdStatusSinistro"]) if base.get("IdStatusSinistro") else None
-    claim_status = "Importado"
-    regulatory_status_name = base["StatusSinistro"]
-    claim_step = "REGULATION"
 
     requestor = {
         "acceptsCommunication": reclamante_aviso.get("AceitaComunicacao", True),
@@ -259,7 +249,7 @@ def process_sinistro(idx, sinistro, total, db, db_aviso):
         },
     }
 
-    claim_document = {
+    return {
         "UpdatedUserName": None,
         "UpdatedAt": parse_date(base["DataAviso"]),
         "CreatedAt": parse_date(base["DataSistema"]),
@@ -285,185 +275,232 @@ def process_sinistro(idx, sinistro, total, db, db_aviso):
         "coverage": coverage_value,
         "coverages": coverages,
         "notificationOrigin": origem_documento,
-        "step": claim_step,
+        "step": "REGULATION",
         "additionalInformation": {},
         "regulatoryStatusCode": status_code,
         "occurrenceCodeUf": int(base["UFOcorrencia"]) if base["UFOcorrencia"] else None,
         "occurrenceNameCity": base["CidadeOcorrencia"],
         "causeType": base["TipoCausa"],
-        "regulatoryStatusName": regulatory_status_name,
+        "regulatoryStatusName": base["StatusSinistro"],
         "createdOrigin": None,
         "updatedOrigin": origem_documento,
         "isJudicial": False,
         "priorityFlag": False,
     }
 
-    log_step(idx, total, sinistro, "Inserindo LegacyClaim")
-    db.LegacyClaim.insert_one(sanitize_for_mongo(claim_document))
 
-    log_step(idx, total, sinistro, "Sincronizando Documentos")
-    docs_cursor = sql_conn.cursor()
-    docs_cursor.execute(DOC_QUERY, sinistro)
-    docs_rows = docs_cursor.fetchall()
+def build_document(sinistro, doc_row, protocolo_num, docmap):
+    return {
+        "UpdatedUserName": USER_CODE,
+        "UpdatedAt": doc_row["dt_solicitacao"],
+        "CreatedAt": doc_row["dt_solicitacao"],
+        "DeliveryAt": None,
+        "flowId": "",
+        "claimNumber": sinistro,
+        "protocol": protocolo_num,
+        "documentName": docmap.get(to_int_or_none(doc_row["id_documento"])),
+        "documentCode": to_int_or_none(doc_row["id_documento"]),
+        "docClassificationCode": "Basic",
+        "documentIsRequired": bool(doc_row["dv_solicitar"]),
+        "requestDate": doc_row["dt_solicitacao"],
+        "receiveDate": doc_row["dt_recebimento"],
+        "beneficiaryCode": to_int_or_none(doc_row["id_sin_beneficiario"]) or 0,
+        "justification": None,
+        "userCode": "",
+        "status": "Completed",
+        "integrationStatus": "Synchronized",
+        "isActive": True,
+        "claimDocumentId": to_int_or_none(doc_row["id_sin_documento"]),
+        "step": "Pending",
+        "createdOrigin": "Platform",
+        "updatedOrigin": "I4Pro",
+        "isReportDocument": False,
+        "attachments": [],
+        "isSupplemental": None,
+    }
 
-    for doc_row in docs_rows:
-        document_mapping = db.DocumentTypeMappings.find_one({"ERPDocumentId": to_int_or_none(doc_row.id_documento)})
-        document_name = document_mapping["ERPDocumentName"] if document_mapping else None
 
-        claim_doc = {
-            "UpdatedUserName": USER_CODE,
-            "UpdatedAt": doc_row.dt_solicitacao,
-            "CreatedAt": doc_row.dt_solicitacao,
-            "DeliveryAt": None,
-            "flowId": "",
-            "claimNumber": sinistro,
-            "protocol": protocolo_num,
-            "documentName": document_name,
-            "documentCode": to_int_or_none(doc_row.id_documento),
-            "docClassificationCode": "Basic",
-            "documentIsRequired": bool(doc_row.dv_solicitar),
-            "requestDate": doc_row.dt_solicitacao,
-            "receiveDate": doc_row.dt_recebimento,
-            "beneficiaryCode": to_int_or_none(doc_row.id_sin_beneficiario) or 0,
-            "justification": None,
-            "userCode": "",
-            "status": "Completed",
-            "integrationStatus": "Synchronized",
-            "isActive": True,
-            "claimDocumentId": to_int_or_none(doc_row.id_sin_documento),
-            "step": "Pending",
-            "createdOrigin": "Platform",
-            "updatedOrigin": "I4Pro",
-            "isReportDocument": False,
-            "attachments": [],
-            "isSupplemental": None,
-        }
-        db.LegacyDocument.insert_one(sanitize_for_mongo(claim_doc))
+def build_attachment(anexo, protocolo_num, origem_documento):
+    key = anexo.get("Key") or ""
+    insert_date = anexo.get("DataInclusaoAnexo") or datetime.utcnow()
+    file_name = key.split("/")[-1] if "/" in key else key
+    return {
+        "UpdatedUserName": None,
+        "UpdatedAt": None,
+        "CreatedAt": insert_date,
+        "DeliveryAt": None,
+        "protocol": protocolo_num,
+        "key": key,
+        "insertDate": insert_date,
+        "status": "Completed",
+        "tipificationCode": None,
+        "tipificationDate": None,
+        "documentTypeCode": None,
+        "documentTypeNames": None,
+        "documentTypes": None,
+        "erpDocuments": None,
+        "suggestedDocumentCode": "",
+        "metadata": None,
+        "metadataSuccess": False,
+        "metadataValidationSuccess": False,
+        "integrationStep": None,
+        "userCode": "api-legado-v5",
+        "hash": anexo.get("Hash") or "",
+        "sizeKb": 100,
+        "fileName": file_name,
+        "isOpen": False,
+        "origin": origem_documento or "apiV5",
+        "notes": "",
+        "beneficiaryCode": None,
+        "calls": [],
+        "relatedDocumentFlowIds": None,
+        "errors": [],
+        "documentTypificationCall": None,
+    }
 
-    log_step(idx, total, sinistro, "Importando anexos")
-    anexos_cursor = db_aviso["AvisoSinistroAnexo"].find({"Protocolo": protocolo_num})
 
-    for anexo in anexos_cursor:
-        key = anexo.get("Key") or ""
-        hash_val = anexo.get("Hash") or ""
-        insert_date = anexo.get("DataInclusaoAnexo") or datetime.utcnow()
-        file_name = key.split("/")[-1] if "/" in key else key
+def fetch_grouped(sql_conn, query_template, key_col, sinistros):
+    placeholders = ",".join("?" * len(sinistros))
+    cursor = sql_conn.cursor()
+    cursor.execute(query_template.format(placeholders=placeholders), sinistros)
+    columns = [c[0] for c in cursor.description]
+    key_idx = columns.index(key_col)
+    grouped = defaultdict(list)
+    for row in cursor.fetchall():
+        grouped[int(row[key_idx])].append(dict(zip(columns, row)))
+    return grouped
 
-        legacy_attachment = {
-            "UpdatedUserName": None,
-            "UpdatedAt": None,
-            "CreatedAt": insert_date,
-            "DeliveryAt": None,
-            "protocol": protocolo_num,
-            "key": key,
-            "insertDate": insert_date,
-            "status": "Completed",
-            "tipificationCode": None,
-            "tipificationDate": None,
-            "documentTypeCode": None,
-            "documentTypeNames": None,
-            "documentTypes": None,
-            "erpDocuments": None,
-            "suggestedDocumentCode": "",
-            "metadata": None,
-            "metadataSuccess": False,
-            "metadataValidationSuccess": False,
-            "integrationStep": None,
-            "userCode": "api-legado-v5",
-            "hash": hash_val,
-            "sizeKb": 100,
-            "fileName": file_name,
-            "isOpen": False,
-            "origin": origem_documento or "apiV5",
-            "notes": "",
-            "beneficiaryCode": None,
-            "calls": [],
-            "relatedDocumentFlowIds": None,
-            "errors": [],
-            "documentTypificationCall": None,
-        }
-        db.LegacyAttachment.insert_one(sanitize_for_mongo(legacy_attachment))
 
-    log_step(idx, total, sinistro, "Finalizado")
-    return "sincronizado"
+_thread_local = threading.local()
+
+
+def get_sql_conn():
+    if not hasattr(_thread_local, "sql_conn"):
+        _thread_local.sql_conn = pyodbc.connect(SQL_CONNECTION)
+    return _thread_local.sql_conn
+
 
 def main():
-    report = {
-
-        "quantidade_solicitada": QUANTIDADE_IMPORTAR,
-        "inicio": datetime.now(),
-        "sincronizados": [],
-        "sem_detalhes": [],
-        "ja_existe": [],
-        "erros": [],
-    }
+    inicio = datetime.now()
 
     client = MongoClient(MONGO_CONNECTION)
     db = client[DATABASE_MONGO]
-
     client_aviso = MongoClient(MONGO_AVISO_CONNECTION)
     db_aviso = client_aviso[DATABASE_AVISO]
 
     sql_conn = pyodbc.connect(SQL_CONNECTION)
+
+    print("Carregando lista de sinistros...")
     cursor = sql_conn.cursor()
     cursor.execute(SINISTRO_LIST_QUERY)
-    rows = cursor.fetchall()
+    sinistro_list = [int(r[0]) for r in cursor.fetchall()]
     sql_conn.close()
+    total = len(sinistro_list)
+    print(f"Sinistros: {total}")
 
-    sinistro_list = [int(row[0]) for row in rows][:QUANTIDADE_IMPORTAR]
-    total_sinistros = len(sinistro_list)
+    print("Carregando mapas de apoio (Coverage/Relationship/DocMappings)...")
+    cov_map = load_coverage_map(db)
+    rel_map = load_relationship_map(db)
+    docmap = load_docmap(db)
 
-    report["total_encontrados"] = total_sinistros
-    print(f"Encontrados: {total_sinistros} | Workers: {MAX_WORKERS}")
+    print("Pré-carregando claims já existentes...")
+    existing = set(db.LegacyClaim.distinct("claimNumber")) | set(db.Claim.distinct("claimNumber"))
+    print(f"  já existentes na base: {len(existing)}")
 
+    pendentes_total = [s for s in sinistro_list if s not in existing]
+    ja_existe_total = total - len(pendentes_total)
+    print(f"Pendentes a processar: {len(pendentes_total)} | já existentes: {ja_existe_total}")
+
+    counters = {"sincronizado": 0, "sem_detalhes": 0, "ja_existe": ja_existe_total, "erros": 0}
     lock = threading.Lock()
 
-    def worker(idx, sinistro):
-        try:
-            resultado = process_sinistro(idx, sinistro, total_sinistros, db, db_aviso)
-            with lock:
-                if resultado == "sincronizado":
-                    report["sincronizados"].append(sinistro)
-                elif resultado == "sem_detalhes":
-                    report["sem_detalhes"].append(sinistro)
-                elif resultado == "ja_existe":
-                    report["ja_existe"].append(sinistro)
-        except Exception as e:
-            with lock:
-                report["erros"].append({"sinistro": sinistro, "erro": str(e)})
-            print(f"  ERRO {sinistro}: {e}")
+    batches = [pendentes_total[i:i + SQL_BATCH] for i in range(0, len(pendentes_total), SQL_BATCH)]
+
+    def process_batch(batch):
+        local = {"sincronizado": 0, "sem_detalhes": 0, "erros": 0}
+        conn = get_sql_conn()
+
+        details_by_sin = fetch_grouped(conn, DETAIL_QUERY, "Sinistro", batch)
+        docs_by_sin = fetch_grouped(conn, DOC_QUERY, "nr_sinistro", batch)
+
+        str_to_sin = {str(s): s for s in batch}
+        aviso_map = {}
+        for av in db_aviso["AvisoSinistro"].find({"Sinistros": {"$in": list(str_to_sin.keys())}}, AVISO_PROJECTION):
+            sins = av.get("Sinistros")
+            if isinstance(sins, list):
+                for sv in sins:
+                    if str(sv) in str_to_sin:
+                        aviso_map[str_to_sin[str(sv)]] = av
+            elif str(sins) in str_to_sin:
+                aviso_map[str_to_sin[str(sins)]] = av
+
+        protocolos = {a.get("Protocolo") for a in aviso_map.values() if a.get("Protocolo")}
+        anexos_by_proto = defaultdict(list)
+        if protocolos:
+            for anexo in db_aviso["AvisoSinistroAnexo"].find(
+                {"Protocolo": {"$in": list(protocolos)}}, {"Key": 1, "Hash": 1, "DataInclusaoAnexo": 1, "Protocolo": 1}
+            ):
+                anexos_by_proto[anexo.get("Protocolo")].append(anexo)
+
+        claims_buf, docs_buf, attach_buf = [], [], []
+        for sinistro in batch:
+            registros = details_by_sin.get(sinistro)
+            if not registros:
+                local["sem_detalhes"] += 1
+                continue
+            try:
+                aviso = aviso_map.get(sinistro, {})
+                claim = build_claim_document(sinistro, registros, aviso, cov_map, rel_map)
+                protocolo_num = claim["protocol"]
+                origem_documento = claim["notificationOrigin"]
+                claims_buf.append(sanitize_for_mongo(claim))
+
+                for doc_row in docs_by_sin.get(sinistro, []):
+                    docs_buf.append(sanitize_for_mongo(build_document(sinistro, doc_row, protocolo_num, docmap)))
+
+                for anexo in anexos_by_proto.get(protocolo_num, []):
+                    attach_buf.append(sanitize_for_mongo(build_attachment(anexo, protocolo_num, origem_documento)))
+
+                local["sincronizado"] += 1
+            except Exception as e:
+                local["erros"] += 1
+                print(f"  ERRO {sinistro}: {e}")
+
+        if claims_buf:
+            db.LegacyClaim.insert_many(claims_buf, ordered=False)
+        if docs_buf:
+            db.LegacyDocument.insert_many(docs_buf, ordered=False)
+        if attach_buf:
+            db.LegacyAttachment.insert_many(attach_buf, ordered=False)
+
+        return local
 
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-        futures = [executor.submit(worker, idx, sin) for idx, sin in enumerate(sinistro_list, start=1)]
-        for _ in as_completed(futures):
-            pass
+        futures = [executor.submit(process_batch, b) for b in batches]
+        for fut in as_completed(futures):
+            local = fut.result()
+            with lock:
+                for k, v in local.items():
+                    counters[k] += v
+                done = counters["sincronizado"] + counters["sem_detalhes"] + counters["ja_existe"] + counters["erros"]
+                print(f"[{done}/{total}] sync={counters['sincronizado']} skip={counters['ja_existe']} "
+                      f"sem_detalhe={counters['sem_detalhes']} erro={counters['erros']}")
 
     client.close()
     client_aviso.close()
 
-    report["fim"] = datetime.now()
-    report["duracao_segundos"] = (report["fim"] - report["inicio"]).total_seconds()
-
+    duracao = (datetime.now() - inicio).total_seconds()
     print("\n" + "=" * 60)
     print("RELATÓRIO DE SINCRONIZAÇÃO LEGADO")
     print("=" * 60)
-    print(f"Total SQL: {report['total_encontrados']}")
-    print(f"Sincronizados: {len(report['sincronizados'])}")
-    print(f"Sem detalhes/pulados: {len(report['sem_detalhes'])}")
-    print(f"Já existentes: {len(report['ja_existe'])}")
-    print(f"Erros: {len(report['erros'])}")
-    print(f"Duração: {report['duracao_segundos']:.1f}s")
+    print(f"Total SQL: {total}")
+    print(f"Sincronizados: {counters['sincronizado']}")
+    print(f"Sem detalhes/pulados: {counters['sem_detalhes']}")
+    print(f"Já existentes: {counters['ja_existe']}")
+    print(f"Erros: {counters['erros']}")
+    print(f"Duração: {duracao:.1f}s")
     print("=" * 60)
 
-    if report["sincronizados"]:
-        print(f"\nSinistros sincronizados:")
-        for s in report["sincronizados"]:
-            print(f"  - {s}")
-
-    if report["erros"]:
-        print(f"\nErros:")
-        for e in report["erros"]:
-            print(f"  - {e['sinistro']}: {e['erro']}")
 
 if __name__ == "__main__":
     main()
