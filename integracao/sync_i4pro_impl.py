@@ -181,8 +181,8 @@ def format_birthdate(value):
 def normalize_cpf(value):
     if value is None:
         return None
-    digits = "".join(ch for ch in str(value) if ch.isdigit())
-    return digits.zfill(11) if digits else None
+    text = str(value).strip()
+    return text.zfill(11) if text else None
 
 def dedupe_dict_list(items, key_fn):
     seen = set()

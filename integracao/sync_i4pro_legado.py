@@ -32,7 +32,7 @@ select distinct csin.nr_sinistro
 """
 
 DETAIL_QUERY = """
-select
+select distinct
     csin.nr_sinistro as Sinistro,
     ca.cd_apolice as Apolice,
     ca.nr_bilhete as Certificado,
@@ -75,10 +75,12 @@ select
     csin.nm_cidade_ocorrencia as CidadeOcorrencia,
     csin.cd_causa as Causa,
     csin.cd_tp_causa as TipoCausa,
-    mvto.id_produto_cobertura as ProdutoCobertura
+    mvto.id_produto_cobertura as ProdutoCobertura,
+	mvto2.id_tp_motivo
 from
     i4pro_erp..corp_sinistro csin with(NOLOCK)
     inner join i4pro_erp..corp_sin_movto mvto with(NOLOCK) on csin.nr_sinistro = mvto.nr_sinistro and mvto.cd_evento = 10101
+    left join i4pro_erp..corp_sin_movto mvto2 with(NOLOCK) on csin.nr_sinistro = mvto2.nr_sinistro and mvto2.cd_evento = 10105
     inner join i4pro_erp..corp_status stt with(NOLOCK) on csin.cd_status = stt.cd_status
     inner join i4pro_erp..corp_ramo rm with(NOLOCK) on csin.id_ramo = rm.id_ramo
     inner join i4pro_erp..corp_produto_cobertura cpp with(NOLOCK) on mvto.id_produto_cobertura = cpp.id_produto_cobertura
@@ -133,8 +135,8 @@ def format_birthdate(value):
 def normalize_cpf(value):
     if value is None:
         return None
-    digits = "".join(ch for ch in str(value) if ch.isdigit())
-    return digits.zfill(11) if digits else None
+    text = str(value).strip()
+    return text.zfill(11) if text else None
 
 
 def sanitize_for_mongo(value):
@@ -180,8 +182,7 @@ def load_docmap(db):
 def build_claim_document(sinistro, registros, aviso, cov_map, rel_map):
     base = registros[0]
 
-    protocolo_num = aviso.get("Protocolo", "")
-    segurado_aviso = aviso.get("Segurado") or {}
+    protocolo_num = aviso.get("Protocolo") or f"SIN-{sinistro}"    
     reclamante_aviso = aviso.get("Reclamante") or {}
     info_compl = aviso.get("InformacoesComplementares") or {}
     origem_documento = info_compl.get("origemdocumento", "")
@@ -227,9 +228,9 @@ def build_claim_document(sinistro, registros, aviso, cov_map, rel_map):
     }
 
     insured = {
-        "documentNumber": normalize_cpf(segurado_aviso.get("CpfCnpj") or base["CPFSegurado"]),
+        "documentNumber": normalize_cpf(base["CPFSegurado"]),
         "name": base["NomeSegurado"],
-        "birthDate": format_birthdate(segurado_aviso.get("DataNascimento") or base.get("NascimentoSegurado")),
+        "birthDate": format_birthdate(base.get("NascimentoSegurado")),
         "gender": base.get("GeneroSegurado"),
         "documentType": "CPF",
         "contact": {
@@ -286,10 +287,12 @@ def build_claim_document(sinistro, registros, aviso, cov_map, rel_map):
         "updatedOrigin": origem_documento,
         "isJudicial": False,
         "priorityFlag": False,
+        "cancellationReasonCode": to_int_or_none(base.get("id_tp_motivo")),
     }
 
 
 def build_document(sinistro, doc_row, protocolo_num, docmap):
+    status = "Pending" if doc_row["dt_recebimento"] is None else "Completed"
     return {
         "UpdatedUserName": USER_CODE,
         "UpdatedAt": doc_row["dt_solicitacao"],
@@ -307,7 +310,7 @@ def build_document(sinistro, doc_row, protocolo_num, docmap):
         "beneficiaryCode": to_int_or_none(doc_row["id_sin_beneficiario"]) or 0,
         "justification": None,
         "userCode": "",
-        "status": "Completed",
+        "status": status,
         "integrationStatus": "Synchronized",
         "isActive": True,
         "claimDocumentId": to_int_or_none(doc_row["id_sin_documento"]),

@@ -142,11 +142,11 @@ def collect_prolaboristas(detail: dict) -> List[dict]:
     return prolaboristas
 
 def build_payload(doc: dict, detail: dict) -> dict:
-    premio_liquido = parse_decimal(detail.get("Vl_Premio_Liquido_Total")) or Decimal("0")
-    valor_iof = parse_decimal(detail.get("Vl_IOF")) or Decimal("0")
+    premio_liquido = parse_decimal(detail.get("vl_premio_total")) or Decimal("0")
+    valor_iof = parse_decimal(detail.get("nr_iof")) or Decimal("0")
     premio_bruto = premio_liquido + valor_iof
 
-    nr_certificado = normalize_text(detail.get("Nr_Certificado"))
+    nr_certificado = normalize_text(detail.get("nr_certificado_individual"))
     nr_certificado_val: Any = int(nr_certificado) if nr_certificado.isdigit() else nr_certificado
 
     template_id = normalize_text(detail.get("TemplateId"))
@@ -154,9 +154,9 @@ def build_payload(doc: dict, detail: dict) -> dict:
     return {
         "ProcessoSUSÈP": normalize_text(detail.get("nr_susep_1")),
         "Corretor": {
-            "Corretora": normalize_text(detail.get("Corretor_Nome")),
-            "CNPJ": normalize_text(detail.get("Corretor_CNPJ")),
-            "RegistroSUSEP": normalize_text(detail.get("Corretor_SUSEP")),
+            "Corretora": normalize_text(detail.get("nm_corretor")),
+            "CNPJ": normalize_text(detail.get("nr_cnpj_corretor")),
+            "RegistroSUSEP": normalize_text(detail.get("nr_susep_corretor")),
             "Endereco": None,
             "Bairro": None,
             "Cidade": None,
@@ -171,29 +171,29 @@ def build_payload(doc: dict, detail: dict) -> dict:
             "AnoFabricacao": normalize_nullable(detail.get("nr_ano_fabricacao")),
         },
         "Nr_Certificado": nr_certificado_val,
-        "Nr_Apolice": normalize_text(detail.get("Nr_Apolice")),
-        "Nr_Apolice_Agrupadora": normalize_text(detail.get("Nr_apolice_Agrupadora")),
+        "Nr_Apolice": normalize_text(detail.get("nr_apolice_1")),
+        "Nr_Apolice_Agrupadora": normalize_text(detail.get("nr_apolice_1")),
         "Dt_Emissao": parse_date(detail.get("dt_emissao")),
-        "Nr_Proposta": normalize_text(detail.get("Nr_Proposta")),
+        "Nr_Proposta": normalize_text(detail.get("nr_proposta")),
         "Dt_Inicio_Vigencia": parse_date(detail.get("dt_inicio_vigencia")),
-        "Dt_Fim_Vigencia": parse_date(detail.get("Dt_Fim_Vigencia")),
-        "Cod_Produto": normalize_text(detail.get("Cod_Produto")),
+        "Dt_Fim_Vigencia": parse_date(detail.get("dt_fim_vigencia")),
+        "Cod_Produto": normalize_text(detail.get("cd_produto")),
         "Template_Id": template_id,
         "Nm_Produto": normalize_text(detail.get("nm_produto")),
         "Vl_Premio_Liquido_Total": decimal_to_json(premio_liquido),
         "Vl_IOF": decimal_to_json(valor_iof),
         "Vl_Premio_Bruto_Total": decimal_to_json(premio_bruto),
         "Segurados": [{
-            "Nome": normalize_text(detail.get("Segurado_Nome")),
-            "NomeSocial": normalize_text(detail.get("Segurado_Nome_Social")),
-            "CPF": normalize_text(detail.get("Segurado_CPF")),
-            "Dt_Nascimento": parse_date(detail.get("Segurado_Dt_nascimento")),
-            "Endereco": normalize_text(detail.get("Segurado_Endereco")),
-            "Complemento": normalize_text(detail.get("Segurado_Complemento")),
-            "Bairro": normalize_text(detail.get("Segurado_Bairro")),
-            "Cidade": normalize_text(detail.get("Segurado_Cidade")),
-            "Uf": normalize_text(detail.get("Segurado_UF")),
-            "CEP": normalize_text(detail.get("Segurado_CEP")),
+            "Nome": normalize_text(detail.get("nm_segurado")),
+            "NomeSocial": normalize_text(detail.get("nm_social_segurado")),
+            "CPF": normalize_text(detail.get("nr_cpf_seg")),
+            "Dt_Nascimento": parse_date(detail.get("dt_nascimento_seg")),
+            "Endereco": normalize_text(detail.get("nm_endereco_seg")),
+            "Complemento": normalize_text(detail.get("nm_compl_end_seg")),
+            "Bairro": normalize_text(detail.get("nm_bairro_seg")),
+            "Cidade": normalize_text(detail.get("nm_cidade_seg")),
+            "Uf": normalize_text(detail.get("nm_uf_seg")),
+            "CEP": normalize_text(detail.get("nr_cep_seg")),
             "Email": "",
             "Celular": "",
         }],
