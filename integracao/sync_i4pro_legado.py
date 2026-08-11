@@ -14,9 +14,9 @@ MAX_WORKERS = int(os.getenv("WORKERS", "16"))
 SQL_BATCH = int(os.getenv("SQL_BATCH", "500"))
 USER_CODE = "johnnata.alves"
 
-SQL_CONNECTION = os.getenv("SQL_CONNECTION_I4PRO_HML")
-MONGO_CONNECTION = os.getenv("HML_MONGO_URI")
-MONGO_AVISO_CONNECTION = os.getenv("HML_MONGO_URI")
+SQL_CONNECTION = os.getenv("SQL_CONNECTION_I4PRO_PRD")
+MONGO_CONNECTION = os.getenv("PRD_MONGO_URI")
+MONGO_AVISO_CONNECTION = os.getenv("PRD_MONGO_SA_EAST")
 DATABASE_MONGO = "ClaimEngine"
 DATABASE_AVISO = "SinistrosMicroService"
 
