@@ -1,5 +1,5 @@
 """
-Busca todos Attachments, agrupa maior CreatedAt por protocolo,
+Busca Attachments dos últimos 7 dias, agrupa maior CreatedAt por protocolo,
 atualiza receivedDate nas collections: Notification, Claim e LegacyClaim.
 Roda em 10 threads.
 """
@@ -7,7 +7,7 @@ Roda em 10 threads.
 import os
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from dotenv import load_dotenv
 from pymongo import MongoClient
@@ -15,9 +15,10 @@ from tqdm import tqdm
 
 load_dotenv()
 
-MONGO_URI = os.getenv("HML_MONGO_URI")
+MONGO_URI = os.getenv("PRD_MONGO_URI")
 DB_NAME = "ClaimEngine"
 WORKERS = 10
+DIAS = 7
 
 lock = threading.Lock()
 totais = {"Notification": 0, "Claim": 0, "LegacyClaim": 0}
@@ -47,9 +48,12 @@ def main():
     client = MongoClient(MONGO_URI)
     db = client[DB_NAME]
 
-    print("Agregando maior CreatedAt por protocolo na Attachment...")
+    data_limite = datetime.utcnow() - timedelta(days=DIAS)
+
+    print(f"Agregando maior CreatedAt por protocolo na Attachment (últimos {DIAS} dias)...")
 
     pipeline = [
+        {"$match": {"CreatedAt": {"$gte": data_limite}}},
         {"$group": {
             "_id": "$protocol",
             "maxCreatedAt": {"$max": "$CreatedAt"}
