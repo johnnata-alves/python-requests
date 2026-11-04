@@ -172,10 +172,11 @@ def already_exists(hml, doc_number, coverage):
         })
 
 def validate_policy(hml_indexed_policy_too, doc_number, policy_number):
-    return hml_indexed_policy_too.person_branch_catalog.find_one({
+    policies = hml_indexed_policy_too.person_branch_catalog.find({
         "insured_document": doc_number,
         "policy_number": str(policy_number)
-    })
+    }).sort("_id", -1).limit(10)
+    return next(policies, None)
 
 def validate_stakeholder(hml_indexed_stakeholders, doc_number):
     return hml_indexed_stakeholders.identification.find_one({"document": doc_number})

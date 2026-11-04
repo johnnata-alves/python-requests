@@ -1,5 +1,6 @@
 import os
 import pyodbc
+import requests
 import threading
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -20,10 +21,27 @@ MONGO_AVISO_CONNECTION = os.getenv("PRD_MONGO_SA_EAST")
 DATABASE_MONGO = "ClaimEngine"
 DATABASE_AVISO = "SinistrosMicroService"
 
+PROTOCOLO_URL = os.getenv("PROTOCOLO_API_URL")
+INTERNAL_CLIENT_ID = os.getenv("INTERNAL_CLIENT_ID")
+
+
+def gerar_protocolo():
+    """Cria um novo protocolo na API e retorna o protocolNumber."""
+    response = requests.post(
+        PROTOCOLO_URL,
+        headers={"clientID": INTERNAL_CLIENT_ID},
+        timeout=30,
+    )
+    response.raise_for_status()
+    data = response.json()
+    if "protocolNumber" not in data:
+        raise RuntimeError("Resposta invalida do servico de protocolo.")
+    return data["protocolNumber"]
+
 
 
 WHERE_FILTRO = """ csin.nr_sinistro IN (
-2007700050317
+2007700041743
 
  )
 """
@@ -190,7 +208,7 @@ def load_docmap(db):
 def build_claim_document(sinistro, registros, aviso, cov_map, rel_map):
     base = registros[0]
 
-    protocolo_num = aviso.get("Protocolo") or f"SIN-{sinistro}"
+    protocolo_num = aviso.get("Protocolo") or gerar_protocolo()
     reclamante_aviso = aviso.get("Reclamante") or {}
     info_compl = aviso.get("InformacoesComplementares") or {}
     origem_documento = info_compl.get("origemdocumento", "")

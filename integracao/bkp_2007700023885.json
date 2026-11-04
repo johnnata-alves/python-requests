@@ -1,0 +1,822 @@
+{
+    "_id": ObjectId("6a8e1d4066885fb80664e265"),
+    "event": "ClaimStatusChanged",
+    "key": "2007700023885",
+    "partner": "PAN",
+    "calls": [
+        {
+            "sentAt": ISODate("2026-08-26T01:55:39.517+0300"),
+            "event": "ClaimStatusChanged",
+            "statusCode": NumberInt(200),
+            "success": true,
+            "request": {
+                "method": "POST",
+                "url": "https://api.tooconnector.btgpactual.com/claims/status",
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "protocolo": "022025101603808417",
+                    "numeroSinistro": "2007700023885",
+                    "descricao": "Liquidado final",
+                    "status": "447",
+                    "dataEvento": null
+                }
+            },
+            "response": {
+                "statusCode": NumberInt(200),
+                "headers": {
+                    "Date": "Tue, 25 Aug 2026 22:55:39 GMT",
+                    "Content-Type": "application/json",
+                    "Content-Length": "184",
+                    "Connection": "keep-alive",
+                    "x-amzn-RequestId": "141bec7b-cd32-4867-b953-53277be92144",
+                    "x-amz-apigw-id": "CrmI6GKCmjQEBlA=",
+                    "X-Amzn-Trace-Id": "Root=1-6a8e1d6b-10d047c90534bd103e0fd7a6;Parent=75b9c3f9b0e84011;Sampled=0;Lineage=1:fe195f43:0"
+                },
+                "body": {
+                    "PublishResponse": {
+                        "PublishResult": {
+                            "MessageId": "706ccaa5-260c-5d75-adab-a9ad39a77715",
+                            "SequenceNumber": null
+                        },
+                        "ResponseMetadata": {
+                            "RequestId": "d9305c00-797f-5b50-aed8-3f0866d40130"
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "claimNumber": NumberLong(2007700023885),
+    "createdAt": ISODate("2026-08-26T01:54:55.502+0300"),
+    "deliveryAt": ISODate("2026-08-26T01:55:39.517+0300"),
+    "payload": {
+        "protocolo": "022025101603808417",
+        "numeroSinistro": "2007700023885",
+        "descricao": "Liquidado final",
+        "status": "447",
+        "dataEvento": null
+    },
+    "protocol": "022025101603808417",
+    "status": "Success",
+    "legacyClaim": true
+}
+{
+    "_id": ObjectId("6a8e1d4066885fb80664e264"),
+    "event": "CompensationPaid",
+    "key": "2322442",
+    "partner": "PAN",
+    "calls": [
+        {
+            "sentAt": ISODate("2026-08-26T01:55:38.929+0300"),
+            "event": "CompensationPaid",
+            "statusCode": NumberInt(200),
+            "success": true,
+            "request": {
+                "method": "POST",
+                "url": "https://api.tooconnector.btgpactual.com/claims/payments/confirmed",
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "protocolo": "022025101603808417",
+                    "numeroSinistro": "2007700023885",
+                    "codigoProduto": NumberInt(272),
+                    "certificado": "370846573",
+                    "apolice": "1097704006138",
+                    "status": "11112",
+                    "dataEvento": null,
+                    "pagamento": {
+                        "dataEfetivacaoPagamento": null,
+                        "beneficiario": "BANCO PAN S.A.",
+                        "cpfCnpjBeneficiario": "59285411000113",
+                        "meioPagamento": "TED",
+                        "codBanco": "623",
+                        "agencia": "0001",
+                        "digitoAgencia": "9",
+                        "contaCorrente": "10870",
+                        "digitoContaCorrente": "9",
+                        "idPagamento": "2322442",
+                        "coberturas": [
+                            {
+                                "idPagamento": NumberInt(2322442),
+                                "tipoPagamento": "Cobertura",
+                                "cobertura": "MORTE",
+                                "codCobertura": "15",
+                                "valor": 666.67
+                            }
+                        ],
+                        "valorTotal": 666.67
+                    }
+                }
+            },
+            "response": {
+                "statusCode": NumberInt(200),
+                "headers": {
+                    "Date": "Tue, 25 Aug 2026 22:55:39 GMT",
+                    "Content-Type": "application/json",
+                    "Content-Length": "184",
+                    "Connection": "keep-alive",
+                    "x-amzn-RequestId": "41ca90c7-beeb-4778-a3f5-e79198c871c0",
+                    "x-amz-apigw-id": "CrmI2H8CGjQEHyg=",
+                    "X-Amzn-Trace-Id": "Root=1-6a8e1d6b-79f1c9c65700ee74109a1f47;Parent=441f56ce0110f506;Sampled=0;Lineage=1:fe195f43:0"
+                },
+                "body": {
+                    "PublishResponse": {
+                        "PublishResult": {
+                            "MessageId": "58cd6fa9-7838-5e9b-99ee-0ca16793431d",
+                            "SequenceNumber": null
+                        },
+                        "ResponseMetadata": {
+                            "RequestId": "7c020048-defc-5f7c-830c-6340c157f2fa"
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "claimNumber": NumberLong(2007700023885),
+    "createdAt": ISODate("2026-08-26T01:54:55.502+0300"),
+    "deliveryAt": ISODate("2026-08-26T01:55:38.929+0300"),
+    "payload": {
+        "protocolo": "022025101603808417",
+        "numeroSinistro": "2007700023885",
+        "codigoProduto": NumberInt(272),
+        "certificado": "370846573",
+        "apolice": "1097704006138",
+        "status": "11112",
+        "dataEvento": null,
+        "pagamento": {
+            "dataEfetivacaoPagamento": null,
+            "beneficiario": "BANCO PAN S.A.",
+            "cpfCnpjBeneficiario": "59285411000113",
+            "meioPagamento": "TED",
+            "codBanco": "623",
+            "agencia": "0001",
+            "digitoAgencia": "9",
+            "contaCorrente": "10870",
+            "digitoContaCorrente": "9",
+            "idPagamento": "2322442",
+            "coberturas": [
+                {
+                    "idPagamento": NumberInt(2322442),
+                    "tipoPagamento": "Cobertura",
+                    "cobertura": "MORTE",
+                    "codCobertura": "15",
+                    "valor": 666.67
+                }
+            ],
+            "valorTotal": 666.67
+        }
+    },
+    "protocol": "022025101603808417",
+    "status": "Success",
+    "legacyClaim": true
+}
+{
+    "_id": ObjectId("6a8e1d4066885fb80664e263"),
+    "event": "CompensationReleased",
+    "key": "2322442",
+    "partner": "PAN",
+    "calls": [
+        {
+            "sentAt": ISODate("2026-08-26T01:55:37.946+0300"),
+            "event": "CompensationReleased",
+            "statusCode": NumberInt(200),
+            "success": true,
+            "request": {
+                "method": "POST",
+                "url": "https://api.tooconnector.btgpactual.com/claims/payments",
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "protocolo": "022025101603808417",
+                    "numeroSinistro": "2007700023885",
+                    "codigoProduto": NumberInt(272),
+                    "certificado": "370846573",
+                    "apolice": "1097704006138",
+                    "status": "11111",
+                    "dataEvento": null,
+                    "pagamento": {
+                        "dataAgendamento": null,
+                        "beneficiario": "BANCO PAN S.A.",
+                        "cpfCnpjBeneficiario": "59285411000113",
+                        "meioPagamento": "TED",
+                        "codBanco": "623",
+                        "agencia": "0001",
+                        "digitoAgencia": "9",
+                        "contaCorrente": "10870",
+                        "digitoContaCorrente": "9",
+                        "idPagamento": "2322442",
+                        "coberturas": [
+                            {
+                                "idPagamento": NumberInt(2322442),
+                                "tipoPagamento": "Cobertura",
+                                "cobertura": "MORTE",
+                                "codCobertura": "15",
+                                "valor": 666.67
+                            }
+                        ],
+                        "valorTotal": 666.67
+                    }
+                }
+            },
+            "response": {
+                "statusCode": NumberInt(200),
+                "headers": {
+                    "Date": "Tue, 25 Aug 2026 22:55:38 GMT",
+                    "Content-Type": "application/json",
+                    "Content-Length": "184",
+                    "Connection": "keep-alive",
+                    "x-amzn-RequestId": "891f2f09-519a-4a55-997e-37dbfc0c04d2",
+                    "x-amz-apigw-id": "CrmIwFSyGjQEcPg=",
+                    "X-Amzn-Trace-Id": "Root=1-6a8e1d6a-406bf4e243d6a7573f0850c1;Parent=63b005d5ddd84c3b;Sampled=0;Lineage=1:fe195f43:0"
+                },
+                "body": {
+                    "PublishResponse": {
+                        "PublishResult": {
+                            "MessageId": "86533e1e-0a6b-5fec-a6ad-5d1615c1b624",
+                            "SequenceNumber": null
+                        },
+                        "ResponseMetadata": {
+                            "RequestId": "37eefc2e-5a23-5ba8-9ecc-9f2645898260"
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "claimNumber": NumberLong(2007700023885),
+    "createdAt": ISODate("2026-08-26T01:54:55.502+0300"),
+    "deliveryAt": ISODate("2026-08-26T01:55:37.946+0300"),
+    "payload": {
+        "protocolo": "022025101603808417",
+        "numeroSinistro": "2007700023885",
+        "codigoProduto": NumberInt(272),
+        "certificado": "370846573",
+        "apolice": "1097704006138",
+        "status": "11111",
+        "dataEvento": null,
+        "pagamento": {
+            "dataAgendamento": null,
+            "beneficiario": "BANCO PAN S.A.",
+            "cpfCnpjBeneficiario": "59285411000113",
+            "meioPagamento": "TED",
+            "codBanco": "623",
+            "agencia": "0001",
+            "digitoAgencia": "9",
+            "contaCorrente": "10870",
+            "digitoContaCorrente": "9",
+            "idPagamento": "2322442",
+            "coberturas": [
+                {
+                    "idPagamento": NumberInt(2322442),
+                    "tipoPagamento": "Cobertura",
+                    "cobertura": "MORTE",
+                    "codCobertura": "15",
+                    "valor": 666.67
+                }
+            ],
+            "valorTotal": 666.67
+        }
+    },
+    "protocol": "022025101603808417",
+    "status": "Success",
+    "legacyClaim": true
+}
+{
+    "_id": ObjectId("6a8e1a05302134f90b58c568"),
+    "event": "ClaimStatusChanged",
+    "key": "2007700023885",
+    "partner": "PAN",
+    "calls": [
+        {
+            "sentAt": ISODate("2026-08-26T01:41:21.494+0300"),
+            "event": "ClaimStatusChanged",
+            "statusCode": NumberInt(200),
+            "success": true,
+            "request": {
+                "method": "POST",
+                "url": "https://api.tooconnector.btgpactual.com/claims/status",
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "protocolo": "022025101603808417",
+                    "numeroSinistro": "2007700023885",
+                    "descricao": "Liquidado final",
+                    "status": "447",
+                    "dataEvento": null
+                }
+            },
+            "response": {
+                "statusCode": NumberInt(200),
+                "headers": {
+                    "Date": "Tue, 25 Aug 2026 22:41:22 GMT",
+                    "Content-Type": "application/json",
+                    "Content-Length": "184",
+                    "Connection": "keep-alive",
+                    "x-amzn-RequestId": "afe320e4-79a2-4c96-be32-67820bf29ef9",
+                    "x-amz-apigw-id": "CrkC4GIcGjQEONw=",
+                    "X-Amzn-Trace-Id": "Root=1-6a8e1a11-71435036165bcccb162fd5dc;Parent=76171caa3da1c839;Sampled=0;Lineage=1:fe195f43:0"
+                },
+                "body": {
+                    "PublishResponse": {
+                        "PublishResult": {
+                            "MessageId": "53c43d3a-9b5a-5a00-95fa-5e32870887c6",
+                            "SequenceNumber": null
+                        },
+                        "ResponseMetadata": {
+                            "RequestId": "a77a08a7-b72f-5408-aecb-6bafab7ea9ce"
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "claimNumber": NumberLong(2007700023885),
+    "createdAt": ISODate("2026-08-26T01:41:08.359+0300"),
+    "deliveryAt": ISODate("2026-08-26T01:41:21.494+0300"),
+    "payload": {
+        "protocolo": "022025101603808417",
+        "numeroSinistro": "2007700023885",
+        "descricao": "Liquidado final",
+        "status": "447",
+        "dataEvento": null
+    },
+    "protocol": "022025101603808417",
+    "status": "Success",
+    "legacyClaim": true
+}
+{
+    "_id": ObjectId("6a5edb659dbfd9825324cc30"),
+    "event": "ClaimOpened",
+    "key": "6a3e0417f880c726f481b6bf",
+    "partner": "PAN",
+    "calls": [
+        {
+            "sentAt": ISODate("2026-07-21T05:38:37.750+0300"),
+            "event": "ClaimOpened",
+            "statusCode": NumberInt(200),
+            "success": true,
+            "request": {
+                "method": "POST",
+                "url": "https://api.tooconnector.btgpactual.com/claims",
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "protocolo": "022025101603808417",
+                    "numeroSinistro": "2007700023885",
+                    "produto": {
+                        "codigo": NumberInt(272),
+                        "descricao": "PAN CONSIGNADO SUPER PROTEÇÃO INSS"
+                    },
+                    "status": "Sinistro: 2007700023885 aberto com o protocolo 022025101603808417 para os produtos PAN CONSIGNADO SUPER PROTEÇÃO INSS",
+                    "ocorrencia": "2024-11-24T00:00:00Z",
+                    "segurado": {
+                        "nome": "JOSE DE RIBAMAR BARBOSA ALVES                                                                                                                         ",
+                        "cpfCnpj": "17850835387",
+                        "dataNascimento": null,
+                        "endereco": null
+                    },
+                    "reclamante": {
+                        "aceitaComunicacao": false,
+                        "tipoComunicacao": "NÃO COMUNICAR",
+                        "tipoComunicacaoValue": "8 - NENHUM",
+                        "email": "backofficesegurossinistro@bancopan.onmicrosoft.com",
+                        "telefone": "00987654321",
+                        "proprioSegurado": false,
+                        "cpfCnpj": "59285411000113",
+                        "nome": "Banco Pan S.A.",
+                        "genero": "",
+                        "endereco": null,
+                        "relacao": "OUT - OUTROS"
+                    },
+                    "sinistrado": {
+                        "cpfCnpj": "17850835387",
+                        "nome": "JOSE DE RIBAMAR BARBOSA ALVES                                                                                                                         "
+                    },
+                    "itens": [],
+                    "relato": null,
+                    "apolices": [
+                        {
+                            "numeroApolice": NumberLong(1097704006138),
+                            "numeroCertificado": NumberInt(370846573),
+                            "codigoEstipulante": null,
+                            "dataContrato": null,
+                            "coberturas": [
+                                {
+                                    "id": NumberInt(15),
+                                    "grupoCoberturaId": NumberInt(0),
+                                    "tipoCausaId": NumberInt(4),
+                                    "saldoDevedor": null
+                                }
+                            ],
+                            "endereco": null
+                        }
+                    ],
+                    "cnpjEstipulante": "59285411000113",
+                    "garantido": null,
+                    "beneficiarios": [],
+                    "informacoesComplementares": {
+                        "origemdocumento": "platform"
+                    },
+                    "dataDoAviso": "2025-10-16T00:00:00Z",
+                    "codigoStatus": NumberInt(20002)
+                }
+            },
+            "response": {
+                "statusCode": NumberInt(200),
+                "headers": {
+                    "Date": "Tue, 21 Jul 2026 02:38:38 GMT",
+                    "Content-Type": "application/json",
+                    "Content-Length": "184",
+                    "Connection": "keep-alive",
+                    "x-amzn-RequestId": "80607fa0-a23b-4a89-9608-973567bb595b",
+                    "x-amz-apigw-id": "A1dDSHWNGjQEGjA=",
+                    "X-Amzn-Trace-Id": "Root=1-6a5edbae-6063895c4f82f430455e0ec2;Parent=7c97007f3fb71c75;Sampled=0;Lineage=1:fe195f43:0"
+                },
+                "body": {
+                    "PublishResponse": {
+                        "PublishResult": {
+                            "MessageId": "00098621-d38a-503b-80c8-e4f90e64807e",
+                            "SequenceNumber": null
+                        },
+                        "ResponseMetadata": {
+                            "RequestId": "f812b946-5715-52af-a305-db9e8afb22ea"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "sentAt": ISODate("2026-07-28T18:52:14.854+0300"),
+            "event": "ClaimOpened",
+            "statusCode": NumberInt(200),
+            "success": true,
+            "request": {
+                "method": "POST",
+                "url": "https://api.tooconnector.btgpactual.com/claims",
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "protocolo": "022025101603808417",
+                    "numeroSinistro": "2007700023885",
+                    "produto": {
+                        "codigo": NumberInt(272),
+                        "descricao": "PAN CONSIGNADO SUPER PROTEÇÃO INSS"
+                    },
+                    "status": "Sinistro: 2007700023885 aberto com o protocolo 022025101603808417 para os produtos PAN CONSIGNADO SUPER PROTEÇÃO INSS",
+                    "ocorrencia": "2024-11-24T00:00:00Z",
+                    "segurado": {
+                        "nome": "JOSE DE RIBAMAR BARBOSA ALVES                                                                                                                         ",
+                        "cpfCnpj": "17850835387",
+                        "dataNascimento": null,
+                        "endereco": null
+                    },
+                    "reclamante": {
+                        "aceitaComunicacao": false,
+                        "tipoComunicacao": "NÃO COMUNICAR",
+                        "tipoComunicacaoValue": "8 - NENHUM",
+                        "email": "backofficesegurossinistro@bancopan.onmicrosoft.com",
+                        "telefone": "00987654321",
+                        "proprioSegurado": false,
+                        "cpfCnpj": "59285411000113",
+                        "nome": "Banco Pan S.A.",
+                        "genero": "",
+                        "endereco": null,
+                        "relacao": "OUT - OUTROS"
+                    },
+                    "sinistrado": {
+                        "cpfCnpj": "17850835387",
+                        "nome": "JOSE DE RIBAMAR BARBOSA ALVES                                                                                                                         "
+                    },
+                    "itens": [],
+                    "relato": null,
+                    "apolices": [
+                        {
+                            "numeroApolice": NumberLong(1097704006138),
+                            "numeroCertificado": NumberInt(370846573),
+                            "codigoEstipulante": null,
+                            "dataContrato": null,
+                            "coberturas": [
+                                {
+                                    "id": NumberInt(15),
+                                    "grupoCoberturaId": NumberInt(0),
+                                    "tipoCausaId": NumberInt(4),
+                                    "saldoDevedor": null
+                                }
+                            ],
+                            "endereco": null
+                        }
+                    ],
+                    "cnpjEstipulante": "59285411000113",
+                    "garantido": null,
+                    "beneficiarios": [],
+                    "informacoesComplementares": {
+                        "origemdocumento": "platform"
+                    },
+                    "dataDoAviso": "2025-10-16T00:00:00Z",
+                    "codigoStatus": NumberInt(20002)
+                }
+            },
+            "response": {
+                "statusCode": NumberInt(200),
+                "headers": {
+                    "Date": "Tue, 28 Jul 2026 15:52:16 GMT",
+                    "Content-Type": "application/json",
+                    "Content-Length": "184",
+                    "Connection": "keep-alive",
+                    "x-amzn-RequestId": "bc766917-6569-447e-a385-67af00c2f273",
+                    "x-amz-apigw-id": "BOV3kG-VGjQEN8w=",
+                    "X-Amzn-Trace-Id": "Root=1-6a68d02f-37ad12235a441050164a352b;Parent=639bb068450fdd78;Sampled=0;Lineage=1:fe195f43:0"
+                },
+                "body": {
+                    "PublishResponse": {
+                        "PublishResult": {
+                            "MessageId": "f67f9891-3ef3-5dc3-bded-fa73ec8324a9",
+                            "SequenceNumber": null
+                        },
+                        "ResponseMetadata": {
+                            "RequestId": "b1238255-cf91-5f44-bea3-e0b71de1b62e"
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "claimNumber": NumberLong(2007700023885),
+    "createdAt": ISODate("2026-07-21T05:37:25.860+0300"),
+    "deliveryAt": ISODate("2026-07-28T18:52:14.854+0300"),
+    "legacyClaim": true,
+    "payload": {
+        "protocolo": "022025101603808417",
+        "numeroSinistro": "2007700023885",
+        "produto": {
+            "codigo": NumberInt(272),
+            "descricao": "PAN CONSIGNADO SUPER PROTEÇÃO INSS"
+        },
+        "status": "Sinistro: 2007700023885 aberto com o protocolo 022025101603808417 para os produtos PAN CONSIGNADO SUPER PROTEÇÃO INSS",
+        "ocorrencia": "2024-11-24T00:00:00Z",
+        "segurado": {
+            "nome": "JOSE DE RIBAMAR BARBOSA ALVES                                                                                                                         ",
+            "cpfCnpj": "17850835387",
+            "dataNascimento": null,
+            "endereco": null
+        },
+        "reclamante": {
+            "aceitaComunicacao": false,
+            "tipoComunicacao": "NÃO COMUNICAR",
+            "tipoComunicacaoValue": "8 - NENHUM",
+            "email": "backofficesegurossinistro@bancopan.onmicrosoft.com",
+            "telefone": "00987654321",
+            "proprioSegurado": false,
+            "cpfCnpj": "59285411000113",
+            "nome": "Banco Pan S.A.",
+            "genero": "",
+            "endereco": null,
+            "relacao": "OUT - OUTROS"
+        },
+        "sinistrado": {
+            "cpfCnpj": "17850835387",
+            "nome": "JOSE DE RIBAMAR BARBOSA ALVES                                                                                                                         "
+        },
+        "itens": [],
+        "relato": null,
+        "apolices": [
+            {
+                "numeroApolice": NumberLong(1097704006138),
+                "numeroCertificado": NumberInt(370846573),
+                "codigoEstipulante": null,
+                "dataContrato": null,
+                "coberturas": [
+                    {
+                        "id": NumberInt(15),
+                        "grupoCoberturaId": NumberInt(0),
+                        "tipoCausaId": NumberInt(4),
+                        "saldoDevedor": null
+                    }
+                ],
+                "endereco": null
+            }
+        ],
+        "cnpjEstipulante": "59285411000113",
+        "garantido": null,
+        "beneficiarios": [],
+        "informacoesComplementares": {
+            "origemdocumento": "platform"
+        },
+        "dataDoAviso": "2025-10-16T00:00:00Z",
+        "codigoStatus": NumberInt(20002)
+    },
+    "protocol": "022025101603808417",
+    "status": "Success"
+}
+{
+    "_id": ObjectId("6a5e5e009dbfd98253fc0345"),
+    "partner": "PAN",
+    "event": "DocumentRequested",
+    "key": "6a3e0417f880c726f481b6bf",
+    "calls": [
+        {
+            "sentAt": ISODate("2026-07-20T20:43:16.837+0300"),
+            "event": "DocumentRequested",
+            "statusCode": NumberInt(200),
+            "success": true,
+            "request": {
+                "method": "POST",
+                "url": "https://api.tooconnector.btgpactual.com/claims/documents/request",
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "protocolo": "022025101603808417",
+                    "codigoProduto": NumberInt(272),
+                    "numeroSinistro": NumberLong(2007700023885),
+                    "status": "426",
+                    "dataEvento": "2026-07-20T17:42:24.105796Z",
+                    "documentosPendentes": [
+                        {
+                            "idDocumento": NumberInt(124),
+                            "nomeDocumento": "CERTIDÃO DE ÓBITO DO SEGURADO",
+                            "dataSolicitacao": "2026-07-20T17:42:24",
+                            "nomeClassificacao": "basic"
+                        },
+                        {
+                            "idDocumento": NumberInt(326),
+                            "nomeDocumento": "CÓPIA SIMPLES DOS LAUDOS E EXAMES REFERENTES À PATOLOGIA QUE LEVOU O SEGURADO AO ÓBITO",
+                            "dataSolicitacao": "2026-07-20T17:42:24",
+                            "nomeClassificacao": "basic"
+                        },
+                        {
+                            "idDocumento": NumberInt(314),
+                            "nomeDocumento": "DOCUMENTO DE IDENTIFICAÇÃO DO SEGURADO",
+                            "dataSolicitacao": "2026-07-20T17:42:24",
+                            "nomeClassificacao": "basic"
+                        },
+                        {
+                            "idDocumento": NumberInt(57),
+                            "nomeDocumento": "DECLARAÇÃO DE ÚNICOS HERDEIROS, COM FIRMA RECONHECIDA DA ASSINATURA DO DECLARANTE E DAS TESTEMUNHAS",
+                            "dataSolicitacao": "2026-07-20T17:42:24",
+                            "nomeClassificacao": "basic"
+                        }
+                    ],
+                    "numeroBilhete": "370846573",
+                    "numeroApolice": "1097704006138"
+                }
+            },
+            "response": {
+                "statusCode": NumberInt(200),
+                "headers": {
+                    "Date": "Mon, 20 Jul 2026 17:43:17 GMT",
+                    "Content-Type": "application/json",
+                    "Content-Length": "184",
+                    "Connection": "keep-alive",
+                    "x-amzn-RequestId": "452fdf63-08a1-473a-979f-32959109af77",
+                    "x-amz-apigw-id": "A0OoZEtemjQEUfA=",
+                    "X-Amzn-Trace-Id": "Root=1-6a5e5e35-384011c3125e507259c599cb;Parent=33ed70b7d9a75153;Sampled=0;Lineage=1:fe195f43:0"
+                },
+                "body": {
+                    "PublishResponse": {
+                        "PublishResult": {
+                            "MessageId": "c34ef8d6-2c0e-5f79-b3b2-9a0e4c7baa9a",
+                            "SequenceNumber": null
+                        },
+                        "ResponseMetadata": {
+                            "RequestId": "5168c258-6777-5472-a865-a0800702a191"
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "claimNumber": NumberLong(2007700023885),
+    "createdAt": ISODate("2026-07-20T20:42:24.105+0300"),
+    "deliveryAt": ISODate("2026-07-20T20:43:16.837+0300"),
+    "legacyClaim": true,
+    "payload": {
+        "protocolo": "022025101603808417",
+        "codigoProduto": NumberInt(272),
+        "numeroSinistro": NumberLong(2007700023885),
+        "status": "426",
+        "dataEvento": "2026-07-20T17:42:24.105796Z",
+        "documentosPendentes": [
+            {
+                "idDocumento": NumberInt(124),
+                "nomeDocumento": "CERTIDÃO DE ÓBITO DO SEGURADO",
+                "dataSolicitacao": "2026-07-20T17:42:24",
+                "nomeClassificacao": "basic"
+            },
+            {
+                "idDocumento": NumberInt(326),
+                "nomeDocumento": "CÓPIA SIMPLES DOS LAUDOS E EXAMES REFERENTES À PATOLOGIA QUE LEVOU O SEGURADO AO ÓBITO",
+                "dataSolicitacao": "2026-07-20T17:42:24",
+                "nomeClassificacao": "basic"
+            },
+            {
+                "idDocumento": NumberInt(314),
+                "nomeDocumento": "DOCUMENTO DE IDENTIFICAÇÃO DO SEGURADO",
+                "dataSolicitacao": "2026-07-20T17:42:24",
+                "nomeClassificacao": "basic"
+            },
+            {
+                "idDocumento": NumberInt(57),
+                "nomeDocumento": "DECLARAÇÃO DE ÚNICOS HERDEIROS, COM FIRMA RECONHECIDA DA ASSINATURA DO DECLARANTE E DAS TESTEMUNHAS",
+                "dataSolicitacao": "2026-07-20T17:42:24",
+                "nomeClassificacao": "basic"
+            }
+        ],
+        "numeroBilhete": "370846573",
+        "numeroApolice": "1097704006138"
+    },
+    "protocol": "022025101603808417",
+    "status": "Success"
+}
+{
+    "_id": ObjectId("6a5ae7ca2a9ca703b047a700"),
+    "partner": "PAN",
+    "key": null,
+    "event": "DocumentRequested",
+    "calls": [],
+    "claimNumber": NumberLong(2007700023885),
+    "createdAt": ISODate("2025-10-17T10:37:10.623+0300"),
+    "deliveryAt": ISODate("2025-10-17T10:37:10.623+0300"),
+    "payload": null,
+    "protocol": "022025101603808417",
+    "status": "Success",
+    "importLegacy": true
+}
+{
+    "_id": ObjectId("6a5ae7b62a9ca703b0478bd3"),
+    "partner": "PAN",
+    "key": null,
+    "event": "DocumentRequested",
+    "calls": [],
+    "claimNumber": NumberLong(2007700023885),
+    "createdAt": ISODate("2025-10-25T02:00:10.424+0300"),
+    "deliveryAt": ISODate("2025-10-25T02:00:10.424+0300"),
+    "payload": null,
+    "protocol": "022025101603808417",
+    "status": "Success",
+    "importLegacy": true
+}
+{
+    "_id": ObjectId("6a5ae7922a9ca703b04742d2"),
+    "partner": "PAN",
+    "key": NumberInt(2322442),
+    "event": "CompensationPaid",
+    "calls": [],
+    "claimNumber": NumberLong(2007700023885),
+    "createdAt": ISODate("2025-11-13T14:06:54.246+0300"),
+    "deliveryAt": ISODate("2025-11-13T14:06:54.246+0300"),
+    "payload": null,
+    "protocol": "022025101603808417",
+    "status": "Success",
+    "importLegacy": true
+}
+{
+    "_id": ObjectId("6a5ae7912a9ca703b0473fd3"),
+    "partner": "PAN",
+    "key": NumberInt(2322442),
+    "event": "CompensationReleased",
+    "calls": [],
+    "claimNumber": NumberLong(2007700023885),
+    "createdAt": ISODate("2025-11-10T00:55:18.737+0300"),
+    "deliveryAt": ISODate("2025-11-10T00:55:18.737+0300"),
+    "payload": null,
+    "protocol": "022025101603808417",
+    "status": "Success",
+    "importLegacy": true
+}
+{
+    "_id": ObjectId("6a5ae78d2a9ca703b04736f0"),
+    "partner": "PAN",
+    "key": null,
+    "event": "DocumentRequested",
+    "calls": [],
+    "claimNumber": NumberLong(2007700023885),
+    "createdAt": ISODate("2025-11-13T14:03:24.852+0300"),
+    "deliveryAt": ISODate("2025-11-13T14:03:24.852+0300"),
+    "payload": null,
+    "protocol": "022025101603808417",
+    "status": "Success",
+    "importLegacy": true
+}
+{
+    "_id": ObjectId("6a5ae6d72a9ca703b045b25e"),
+    "partner": "PAN",
+    "key": null,
+    "event": "ClaimOpened",
+    "calls": [],
+    "claimNumber": NumberLong(2007700023885),
+    "createdAt": ISODate("2026-07-06T18:40:44.847+0300"),
+    "deliveryAt": ISODate("2026-07-06T18:40:44.847+0300"),
+    "payload": null,
+    "protocol": "022025101603808417",
+    "status": "Success",
+    "importLegacy": true
+}
